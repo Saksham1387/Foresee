@@ -1,0 +1,21 @@
+{
+  "name": "api",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch index.ts",
+    "build": "bun run build.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0",
+    "common": "workspace:*",
+    "db": "workspace:*"
+  },
+  "dependencies": {
+    "@types/jsonwebtoken": "^9.0.9",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
