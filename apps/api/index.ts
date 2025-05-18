@@ -11,16 +11,8 @@ import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "./config";
 import { authMiddleware } from "./middleware";
 import { matchOrder } from "./matchEngine";
-
-declare global {
-  namespace Express {
-    interface Request {
-      user: {
-        id: string;
-      };
-    }
-  }
-}
+import { RedisManager } from "./redisManager";
+import { CREATE_EVENT, CREATE_ORDER, type MessageToEngine } from "./types/types";
 
 const app = express();
 app.use(express.json());
@@ -99,6 +91,21 @@ app.post("/event", authMiddleware, async (req, res) => {
     },
   });
 
+  const messageToSend : MessageToEngine = {
+    type: CREATE_EVENT,
+    data: {
+      title,
+      expiresAt: event.expiresAt.toISOString(),
+    },
+  };
+
+  const response = await RedisManager.getInstance().sendAndAwait(messageToSend);
+
+//   if (!response.success) {
+//     res.status(400).json({ error: response.error, success: false });
+//     return;
+//   }
+
   res.status(200).json({ success: true, data: event });
   return;
 });
@@ -133,7 +140,8 @@ app.post("/order", authMiddleware, async (req, res) => {
 
   const order = await db.order.create({
     data: {
-      userId: req.userId,
+      //@ts-ignore
+      userId: req.user.id,
       eventId,
       orderType,
       outcome: outcome,

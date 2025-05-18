@@ -22,6 +22,7 @@ model User {
   orders        Order[]
   positions     Position[]
   transactions  Transaction[]
+  trades        Trade[]
 
   @@map("users")
 }
@@ -45,7 +46,7 @@ model Event {
   positions     Position[]
   orders        Order[]
   orderBook     OrderBookEntry[]
-
+  trades        Trade[]
   @@index([isActive])
   @@map("events")
 }
@@ -78,6 +79,23 @@ enum Outcome {
   NO
 }
 
+
+
+model Trade {
+  id            String      @id @default(cuid())
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  quantity      Decimal     @db.Decimal(10, 2)
+  price         Decimal     @db.Decimal(10, 2)
+  outcome       Outcome
+  userId        String
+  eventId       String
+  // Relations
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event         Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@map("trades")
+}
 // Order model for yes/no share trades
 model Order {
   id            String      @id @default(cuid())
