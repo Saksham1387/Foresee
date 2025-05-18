@@ -19,6 +19,7 @@ export interface Fill {
   orderId: string;
 }
 
+
 export class OrderBook {
   YES_BIDS: Order[] = [];
   NO_BIDS: Order[] = [];
@@ -72,6 +73,7 @@ export class OrderBook {
   }
 
   matchBuyOrder(order: Order): { executedQty: number; fills: Fill[] } {
+    console.log("Matching buy order",order);
     let fills: Fill[] = [];
     let executedQty = 0;
 
@@ -84,6 +86,12 @@ export class OrderBook {
           this.YES_ASKS[i].price <= order.price &&
           executedQty < order.quantity
         ) {
+          if(this.YES_ASKS[i].userId === order.userId){
+            continue;
+          }
+          console.log("Filling order",this.YES_ASKS[i]);
+          console.log("Order price",order.price);
+          console.log("ask price",this.YES_ASKS[i].price);
           const filledQty = Math.min(
             this.YES_ASKS[i].quantity,
             order.quantity - executedQty
@@ -117,9 +125,12 @@ export class OrderBook {
       }
       for (let i = 0; i < this.NO_ASKS.length; i++) {
         if (
-          this.NO_ASKS[i].price >= order.price &&
+          this.NO_ASKS[i].price <= order.price &&
           executedQty < order.quantity
         ) {
+          if(this.NO_ASKS[i].userId === order.userId){
+            continue;
+          }
           const filledQty = Math.min(
             this.NO_ASKS[i].quantity,
             order.quantity - executedQty
@@ -159,6 +170,9 @@ export class OrderBook {
       }
 
       for (let i = 0; i < this.YES_BIDS.length; i++) {
+        if(this.YES_BIDS[i].userId === order.userId){
+          continue;
+        }
         if (
           this.YES_BIDS[i].price >= order.price &&
           executedQty < order.quantity
@@ -196,6 +210,9 @@ export class OrderBook {
       }
 
       for (let i = 0; i < this.NO_BIDS.length; i++) {
+        if(this.NO_BIDS[i].userId === order.userId){
+          continue;
+        }
         if (
           this.NO_BIDS[i].price <= order.price &&
           executedQty < order.quantity

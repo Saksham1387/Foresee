@@ -304,6 +304,7 @@ app.get("/depth/:eventId", async (req, res) => {
     },
   };
 
+  console.log("message to send",messageToSend);
   const response = await RedisManager.getInstance().sendAndAwait(messageToSend);
 
   if(!response){

@@ -62,6 +62,16 @@ export class Engine {
         try {
           const newOrderBook = new OrderBook(0.5, 0.5, message.data.title);
           this.addOrderBook(newOrderBook);
+          
+          // Add initial market maker positions
+          const platformUserId = "platform_market_maker";
+          this.createUser(platformUserId);
+          this.positions.get(platformUserId)!.set(message.data.title, { YES: 100, NO: 100 });
+          
+          // Create initial orders at current price (0.5)
+          this.createOrder(message.data.title, 0.5, 100, "SELL", platformUserId, "YES");
+          this.createOrder(message.data.title, 0.5, 100, "SELL", platformUserId, "NO");
+
           RedisManager.getInstance().sendToApi(clientId, {
             type: "EVENT_CREATED",
             payload: {
@@ -228,6 +238,9 @@ export class Engine {
 
     const { executedQty, fills } = orderBook.addOrder(order);
 
+    console.log("Fills",fills);
+
+    console.log("orderBook after adding order",orderBook);
     this.updateBalances(fills, userId, event, outcome, side);
     return {
       executedQty,
@@ -323,40 +336,46 @@ export class Engine {
     event: string,
     quantity: number
   ) {
-    if (side === "BUY") {
-      console.log("Checking funds",this.balances);
-      console.log("Checking UserId",userId);
-      console.log("Checking can get balance",this.balances.get(userId));
-      console.log("Checking can get available",this.balances.get(userId)?.available);
-
-
-      if (this.balances.get(userId)?.available! < price * quantity) {
-        throw new Error("Insufficient funds");
-      }
-      this.balances.set(userId, {
-        available: this.balances.get(userId)!.available - price * quantity,
-        locked: this.balances.get(userId)!.locked + price * quantity,
-      });
-    } else {
-      // Check if the order book has enough YES or NO volume
-      const orderBook = this.orderBook.find(
-        (orderBook) => orderBook.ticker() === event
-      );
-      if (!orderBook) {
-        throw new Error("Order book not found");
-      }
-      if (outcome === "YES") {
-        if (this.positions.get(userId)!.get(event)!.YES < quantity) {
-          throw new Error("Insufficient YES positions");
+    try {
+      if (side === "BUY") {
+        if (!this.balances.has(userId)) {
+          throw new Error("User not found");
         }
-        this.positions.get(userId)!.get(event)!.YES -= quantity;
+        if (this.balances.get(userId)?.available! < price * quantity) {
+          throw new Error("Insufficient funds");
+        }
+        this.balances.set(userId, {
+          available: this.balances.get(userId)!.available - price * quantity,
+          locked: this.balances.get(userId)!.locked + price * quantity,
+        });
       } else {
-        if (this.positions.get(userId)!.get(event)!.NO < quantity) {
-          throw new Error("Insufficient NO positions");
+        // Check if the order book has enough YES or NO volume
+        const orderBook = this.orderBook.find(
+          (orderBook) => orderBook.ticker() === event
+        );
+        if (!orderBook) {
+          throw new Error("Order book not found");
         }
-        this.positions.get(userId)!.get(event)!.NO -= quantity;
-      }
 
+        if (!this.positions.has(userId) || !this.positions.get(userId)!.has(event)) {
+          throw new Error("No positions found for this event");
+        }
+
+        if (outcome === "YES") {
+          if (this.positions.get(userId)!.get(event)!.YES < quantity) {
+            throw new Error("Insufficient YES positions");
+          }
+          this.positions.get(userId)!.get(event)!.YES -= quantity;
+        } else {
+          if (this.positions.get(userId)!.get(event)!.NO < quantity) {
+            throw new Error("Insufficient NO positions");
+          }
+          this.positions.get(userId)!.get(event)!.NO -= quantity;
+        }
+      }
+    } catch (error) {
+      console.error("Error in checkAndLockFunds:", error);
+      throw error; // Re-throw the error to be handled by the caller
     }
   }
 }
