@@ -11,6 +11,7 @@ async function main() {
     const response = await redisClient.rPop("messages" as string);
     if (!response) {
     } else {
+      console.log("Processing message",response);
       engine.process(JSON.parse(response));
     }
   }

@@ -21,13 +21,16 @@ export class RedisManager {
   }
 
   public sendAndAwait(message: MessageToEngine) {
+    console.log("Sending message",message);
     return new Promise((resolve) => {
       const id = this.getRandomClientId();
       this.client.subscribe(id, (message) => {
         this.client.unsubscribe(id);
         resolve(JSON.parse(message));
       });
-      this.publisher.publish(id, JSON.stringify(message));
+      console.log("Pushing message",{ clientId: id, message });
+      this.publisher.lPush("messages", JSON.stringify({ clientId: id, message }));
+      console.log("Pushed message",{ clientId: id, message });
     });
   }
 

@@ -8,8 +8,8 @@ export const signupSchema = z.object({
 
 
 export const createEventSchema = z.object({
-  title: z.string().min(3),
-  description: z.string().min(3),
+  title: z.string(),
+  description: z.string(),
   expiresAt: z.string(),
 });
 

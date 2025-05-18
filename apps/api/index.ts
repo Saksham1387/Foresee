@@ -12,7 +12,7 @@ import { JWT_SECRET } from "./config";
 import { authMiddleware } from "./middleware";
 import { matchOrder } from "./matchEngine";
 import { RedisManager } from "./redisManager";
-import { CREATE_EVENT, CREATE_ORDER, type MessageToEngine } from "./types/types";
+import { CREATE_EVENT, CREATE_ORDER, CREATE_USER, GET_DEPTH, type MessageToEngine } from "./types/types";
 
 const app = express();
 app.use(express.json());
@@ -34,6 +34,21 @@ app.post("/signup", async (req, res) => {
     data: { email, password, username },
   });
 
+  const messageToSend : MessageToEngine = {
+    type: CREATE_USER,
+    data: {
+      userId: user.id,
+    },
+  };
+
+  const response = await RedisManager.getInstance().sendAndAwait(messageToSend);
+
+  if(!response){
+    res.status(400).json({ error: "Orderbook not responding", success: false });
+    return;
+  }
+  
+  
   res.status(200).json({ success: true, data: user });
   return;
 });
@@ -98,13 +113,18 @@ app.post("/event", authMiddleware, async (req, res) => {
       expiresAt: event.expiresAt.toISOString(),
     },
   };
+  console.log("message to send",messageToSend);
 
   const response = await RedisManager.getInstance().sendAndAwait(messageToSend);
 
-//   if (!response.success) {
-//     res.status(400).json({ error: response.error, success: false });
-//     return;
-//   }
+  console.log("response from orderbook",response);
+  if (!response) {
+    await db.event.delete({
+      where: { id: event.id },
+    });
+    res.status(400).json({ error:"Orderbook not responding", success: false });
+    return;
+  }
 
   res.status(200).json({ success: true, data: event });
   return;
@@ -137,24 +157,35 @@ app.post("/order", authMiddleware, async (req, res) => {
       .json({ error: "Price is required for LIMIT orders", success: false });
     return;
   }
+ 
 
-  const order = await db.order.create({
+  const messageToSend : MessageToEngine = {
+    type: CREATE_ORDER,
     data: {
-      //@ts-ignore
-      userId: req.user.id,
-      eventId,
-      orderType,
-      outcome: outcome,
-      side,
-      quantity,
-      price: price || 0,
-    },
-  });
+        event:event.title,
+        price:price!,
+        quantity,
+        side,
+        //@ts-ignore
+        userId: req.userId,
+        outcome,
+    }
+  };
 
-  //@ts-ignore
-  const updatedOrder = await matchOrder(order);
+  const response = await RedisManager.getInstance().sendAndAwait(messageToSend);
+  
+  console.log("response from orderbook",response);
+  if(!response){
+    res.status(400).json({ error: "Orderbook not responding", success: false });
+    return;
+  }
 
-  res.status(200).json({ success: true, data: updatedOrder });
+
+
+
+
+
+  res.status(200).json({ success: true, data: response });
 });
 
 app.get("/orderbook/:eventId", async (req, res) => {
@@ -252,6 +283,36 @@ app.delete("/order/:orderId", authMiddleware, async (req, res) => {
     .json({ success: true, data: { message: "Order cancelled successfully" } });
 });
 
+
+app.get("/depth/:eventId", async (req, res) => {
+  const { eventId } = req.params;
+
+  const event = await db.event.findUnique({
+    where: { id: eventId },
+  });
+
+  if (!event) {
+    res.status(400).json({ error: "Event not found", success: false });
+    return;
+  }
+
+
+  const messageToSend : MessageToEngine = {
+    type: GET_DEPTH,
+    data: {
+      event: event.title!,
+    },
+  };
+
+  const response = await RedisManager.getInstance().sendAndAwait(messageToSend);
+
+  if(!response){
+    res.status(400).json({ error: "Orderbook not responding", success: false });
+    return;
+  }
+  
+  res.status(200).json({ success: true, data: response });
+});
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

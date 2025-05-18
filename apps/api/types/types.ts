@@ -1,10 +1,16 @@
 export type MessageToEngine =
   | {
+      type: typeof CREATE_USER;
+      data: {
+        userId: string;
+      };
+    }
+  | {
       type: typeof CREATE_ORDER;
       data: {
         event: string;
-        price: string;
-        quantity: string;
+        price: number;
+        quantity: number;
         side: "BUY" | "SELL";
         userId: string;
         outcome: "YES" | "NO";
@@ -39,6 +45,7 @@ export type MessageToEngine =
     };
 
 export const CREATE_ORDER = "CREATE_ORDER";
+export const CREATE_USER = "CREATE_USER";
 export const CANCEL_ORDER = "CANCEL_ORDER";
 export const CREATE_EVENT = "CREATE_EVENT";
 export const ON_RAMP = "ON_RAMP";

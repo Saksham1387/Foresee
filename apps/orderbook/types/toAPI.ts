@@ -50,4 +50,11 @@ export type MessageToApi = {
         event: string;
         expiresAt: string;
     }
+} | {
+    type: "USER_CREATED"
+    payload:{
+        userId: string;
+        balance: number;
+        positions: Map<string, { YES: number; NO: number }>;
+    }
 }

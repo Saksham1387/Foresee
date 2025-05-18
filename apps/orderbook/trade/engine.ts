@@ -3,6 +3,7 @@ import {
   CANCEL_ORDER,
   CREATE_EVENT,
   CREATE_ORDER,
+  CREATE_USER,
   GET_DEPTH,
   GET_OPEN_ORDERS,
   type MessageFromAPI,
@@ -22,8 +23,13 @@ export class Engine {
 
   addOrderBook(orderBook: OrderBook) {
     this.orderBook.push(orderBook);
+    console.log("Order book added",this.orderBook);
   }
 
+  createUser(userId: string){
+    this.balances.set(userId, { available: 100, locked: 0 });
+    this.positions.set(userId, new Map());
+  }
   addUser(userId: string) {
     this.balances.set(userId, { available: 100, locked: 0 });
   }
@@ -40,6 +46,18 @@ export class Engine {
     clientId: string;
   }) {
     switch (message.type) {
+      case CREATE_USER:
+        this.createUser(message.data.userId);
+        console.log("User created",this.balances,this.positions);
+        RedisManager.getInstance().sendToApi(clientId, {
+          type: "USER_CREATED",
+          payload: {
+            userId: message.data.userId,
+            balance: this.balances.get(message.data.userId)!.available,
+            positions: this.positions.get(message.data.userId)!,
+          },
+        });
+        break;
       case CREATE_EVENT:
         try {
           const newOrderBook = new OrderBook(0.5, 0.5, message.data.title);
@@ -187,6 +205,7 @@ export class Engine {
     userId: string,
     outcome: "YES" | "NO"
   ) {
+    console.log(this.orderBook)
     const orderBook = this.orderBook.find(
       (orderBook) => orderBook.ticker() === event
     );
@@ -305,7 +324,13 @@ export class Engine {
     quantity: number
   ) {
     if (side === "BUY") {
-      if (this.balances.get(userId)!.available < price * quantity) {
+      console.log("Checking funds",this.balances);
+      console.log("Checking UserId",userId);
+      console.log("Checking can get balance",this.balances.get(userId));
+      console.log("Checking can get available",this.balances.get(userId)?.available);
+
+
+      if (this.balances.get(userId)?.available! < price * quantity) {
         throw new Error("Insufficient funds");
       }
       this.balances.set(userId, {
@@ -331,6 +356,7 @@ export class Engine {
         }
         this.positions.get(userId)!.get(event)!.NO -= quantity;
       }
+
     }
   }
 }
