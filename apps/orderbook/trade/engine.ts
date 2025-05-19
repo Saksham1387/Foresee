@@ -1,4 +1,5 @@
 import { RedisManager } from "../redisManager";
+import { TRADE_ADDED } from "../types/dbMsg";
 import {
   CANCEL_ORDER,
   CREATE_EVENT,
@@ -23,10 +24,10 @@ export class Engine {
 
   addOrderBook(orderBook: OrderBook) {
     this.orderBook.push(orderBook);
-    console.log("Order book added",this.orderBook);
+    console.log("Order book added", this.orderBook);
   }
 
-  createUser(userId: string){
+  createUser(userId: string) {
     this.balances.set(userId, { available: 100, locked: 0 });
     this.positions.set(userId, new Map());
   }
@@ -48,7 +49,7 @@ export class Engine {
     switch (message.type) {
       case CREATE_USER:
         this.createUser(message.data.userId);
-        console.log("User created",this.balances,this.positions);
+        console.log("User created", this.balances, this.positions);
         RedisManager.getInstance().sendToApi(clientId, {
           type: "USER_CREATED",
           payload: {
@@ -62,15 +63,31 @@ export class Engine {
         try {
           const newOrderBook = new OrderBook(0.5, 0.5, message.data.title);
           this.addOrderBook(newOrderBook);
-          
+
           // Add initial market maker positions
           const platformUserId = "platform_market_maker";
           this.createUser(platformUserId);
-          this.positions.get(platformUserId)!.set(message.data.title, { YES: 100, NO: 100 });
-          
+          this.positions
+            .get(platformUserId)!
+            .set(message.data.title, { YES: 100, NO: 100 });
+
           // Create initial orders at current price (0.5)
-          this.createOrder(message.data.title, 0.5, 100, "SELL", platformUserId, "YES");
-          this.createOrder(message.data.title, 0.5, 100, "SELL", platformUserId, "NO");
+          this.createOrder(
+            message.data.title,
+            0.5,
+            100,
+            "SELL",
+            platformUserId,
+            "YES"
+          );
+          this.createOrder(
+            message.data.title,
+            0.5,
+            100,
+            "SELL",
+            platformUserId,
+            "NO"
+          );
 
           RedisManager.getInstance().sendToApi(clientId, {
             type: "EVENT_CREATED",
@@ -215,7 +232,7 @@ export class Engine {
     userId: string,
     outcome: "YES" | "NO"
   ) {
-    console.log(this.orderBook)
+    console.log(this.orderBook);
     const orderBook = this.orderBook.find(
       (orderBook) => orderBook.ticker() === event
     );
@@ -238,15 +255,144 @@ export class Engine {
 
     const { executedQty, fills } = orderBook.addOrder(order);
 
-    console.log("Fills",fills);
+    console.log("Fills", fills);
 
-    console.log("orderBook after adding order",orderBook);
+    console.log("orderBook after adding order", orderBook);
     this.updateBalances(fills, userId, event, outcome, side);
+
+    // Add the WS calls and the DB calls here
+    this.publishDepthUpdates(fills, event, outcome, side, userId);
+    this.createTradeDB(fills, event, outcome, side, userId);
+    this.publishWsTrades(fills,event,userId)
+
     return {
       executedQty,
       fills,
       orderId: order.orderId,
     };
+  }
+
+  
+  publishWsTrades(fills: Fill[], event: string, userId: string){
+    fills.forEach((fill) => {
+      RedisManager.getInstance().publishMessage(`trades@${event}`, {
+        stream: `trades@${event}`,
+        data: {
+          price: fill.price.toString(),
+          quantity: fill.quantity.toString(),
+          timestamp: Date.now(),
+          event,
+          userId,
+          outcome: fill.outcome,
+          side: fill.side,
+        },
+      });
+    })
+  }
+
+  createTradeDB(
+    fills: Fill[],
+    event: string,
+    outcome: string,
+    side: string,
+    userId: string
+  ) {
+    fills.forEach((fill) => {
+      console.log("Filling the trade DB", fill);
+      RedisManager.getInstance().pushMessage({
+        type: TRADE_ADDED,
+        data: {
+          id: fill.orderId,
+          price: fill.price.toString(),
+          quantity: fill.quantity.toString(),
+          timestamp: Date.now(),
+          event,
+          userId,
+          outcome: outcome as "YES" | "NO",
+          side: side as "BUY" | "SELL",
+        },
+      });
+    });
+  }
+
+  // TODO: Fix this logic
+  publishDepthUpdates(
+    fills: Fill[],
+    event: string,
+    outcome: string,
+    side: string,
+    userId: string
+  ) {
+    const orderBook = this.orderBook.find(
+      (orderBook) => orderBook.ticker() === event
+    );
+    if (!orderBook) {
+      throw new Error("Order book not found");
+    }
+
+    // Get the CURRENT depth (after the trade has been processed)
+    const depth = orderBook.getDepth();
+
+    // Get all the price levels that were affected by the fills
+    const affectedPrices = fills.map((f) => f.price.toString());
+
+    console.log("Affected prices", affectedPrices);
+
+    type DepthUpdates = {
+      asks: { price: number; quantity: number }[];
+      bids: { price: number; quantity: number }[];
+    };
+    let yesUpdates: DepthUpdates = { asks: [], bids: [] };
+    let noUpdates: DepthUpdates = { asks: [], bids: [] };
+
+    if (side === "BUY") {
+      if (outcome === "YES") {
+        yesUpdates.asks = depth.YES.asks.filter(
+          (p) => !affectedPrices.includes(p.price.toString())
+        );
+        yesUpdates.bids = depth.YES.bids.filter(
+          (p) => !affectedPrices.includes(p.price.toString())
+        );
+      } else {
+        noUpdates.asks = depth.NO.asks.filter(
+          (p) => !affectedPrices.includes(p.price.toString())
+        );
+        noUpdates.bids = depth.NO.bids.filter(
+          (p) => !affectedPrices.includes(p.price.toString())
+        );
+      }
+    } else {
+      if (outcome === "YES") {
+        yesUpdates.asks = depth.YES.asks.filter(
+          (p) => !affectedPrices.includes(p.price.toString())
+        );
+        yesUpdates.bids = depth.YES.bids.filter(
+          (p) => !affectedPrices.includes(p.price.toString())
+        );
+      } else {
+        noUpdates.asks = depth.NO.asks.filter(
+          (p) => !affectedPrices.includes(p.price.toString())
+        );
+        noUpdates.bids = depth.NO.bids.filter(
+          (p) => !affectedPrices.includes(p.price.toString())
+        );
+      }
+    }
+
+    // Update the depth in Redis
+    RedisManager.getInstance().publishMessage(`depth@${event}`, {
+      stream: `depth@${event}`,
+      data: {
+        YES: {
+          bids: yesUpdates.bids,
+          asks: yesUpdates.asks,
+        },
+        NO: {
+          bids: noUpdates.bids,
+          asks: noUpdates.asks,
+        },
+      },
+    });
   }
 
   updateBalances(
@@ -357,7 +503,10 @@ export class Engine {
           throw new Error("Order book not found");
         }
 
-        if (!this.positions.has(userId) || !this.positions.get(userId)!.has(event)) {
+        if (
+          !this.positions.has(userId) ||
+          !this.positions.get(userId)!.has(event)
+        ) {
           throw new Error("No positions found for this event");
         }
 

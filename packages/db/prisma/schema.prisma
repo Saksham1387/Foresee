@@ -89,13 +89,16 @@ model Trade {
   price         Decimal     @db.Decimal(10, 2)
   outcome       Outcome
   userId        String
-  eventId       String
+  eventId       String?
   // Relations
   user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  event         Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event         Event?       @relation(fields: [eventId], references: [id], onDelete: Cascade)
   @@index([userId])
   @@map("trades")
 }
+
+
+
 // Order model for yes/no share trades
 model Order {
   id            String      @id @default(cuid())

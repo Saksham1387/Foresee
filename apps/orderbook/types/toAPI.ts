@@ -1,5 +1,10 @@
 import type { Order } from "../trade/orderBook";
 
+
+export type TBook  = { 
+    price: number;
+    quantity: number;
+}
 export type MessageToApi = {
     type: "DEPTH"
     payload:{

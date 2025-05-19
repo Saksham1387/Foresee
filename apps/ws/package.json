@@ -1,0 +1,22 @@
+{
+  "name": "ws",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@types/websocket": "^1.0.10",
+    "@types/ws": "^8.18.1",
+    "redis": "^5.0.1",
+    "websocket": "^1.0.35",
+    "websockets": "^0.2.0",
+    "ws": "^8.18.2"
+  }
+}
