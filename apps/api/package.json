@@ -15,7 +15,9 @@
     "db": "workspace:*"
   },
   "dependencies": {
+    "@types/cors": "^2.8.18",
     "@types/jsonwebtoken": "^9.0.9",
+    "cors": "^2.8.5",
     "jsonwebtoken": "^9.0.2",
     "redis": "^5.0.1"
   }

@@ -12,12 +12,20 @@ import { JWT_SECRET } from "./config";
 import { authMiddleware } from "./middleware";
 import { matchOrder } from "./matchEngine";
 import { RedisManager } from "./redisManager";
-import { CREATE_EVENT, CREATE_ORDER, CREATE_USER, GET_DEPTH, type MessageToEngine } from "./types/types";
+import {
+  CREATE_EVENT,
+  CREATE_ORDER,
+  CREATE_USER,
+  GET_DEPTH,
+  type MessageToEngine,
+} from "./types/types";
+import cors from "cors";
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3005;
 
 app.post("/signup", async (req, res) => {
   console.log(req.body);
@@ -34,7 +42,7 @@ app.post("/signup", async (req, res) => {
     data: { email, password, username },
   });
 
-  const messageToSend : MessageToEngine = {
+  const messageToSend: MessageToEngine = {
     type: CREATE_USER,
     data: {
       userId: user.id,
@@ -43,12 +51,11 @@ app.post("/signup", async (req, res) => {
 
   const response = await RedisManager.getInstance().sendAndAwait(messageToSend);
 
-  if(!response){
+  if (!response) {
     res.status(400).json({ error: "Orderbook not responding", success: false });
     return;
   }
-  
-  
+
   res.status(200).json({ success: true, data: user });
   return;
 });
@@ -87,6 +94,22 @@ app.post("/signin", async (req, res) => {
   return;
 });
 
+app.get("/event/:eventId", async (req, res) => {
+  const { eventId } = req.params;
+
+  const event = await db.event.findUnique({
+    where: { id: eventId },
+  });
+
+  if (!event) {
+    res.status(400).json({ error: "Event not found", success: false });
+    return;
+  }
+
+  res.status(200).json({ success: true, data: event });
+  return;
+});
+
 app.post("/event", authMiddleware, async (req, res) => {
   console.log(req.body);
   const data = createEventSchema.safeParse(req.body);
@@ -106,23 +129,23 @@ app.post("/event", authMiddleware, async (req, res) => {
     },
   });
 
-  const messageToSend : MessageToEngine = {
+  const messageToSend: MessageToEngine = {
     type: CREATE_EVENT,
     data: {
       title,
       expiresAt: event.expiresAt.toISOString(),
     },
   };
-  console.log("message to send",messageToSend);
+  console.log("message to send", messageToSend);
 
   const response = await RedisManager.getInstance().sendAndAwait(messageToSend);
 
-  console.log("response from orderbook",response);
+  console.log("response from orderbook", response);
   if (!response) {
     await db.event.delete({
       where: { id: event.id },
     });
-    res.status(400).json({ error:"Orderbook not responding", success: false });
+    res.status(400).json({ error: "Orderbook not responding", success: false });
     return;
   }
 
@@ -157,33 +180,27 @@ app.post("/order", authMiddleware, async (req, res) => {
       .json({ error: "Price is required for LIMIT orders", success: false });
     return;
   }
- 
 
-  const messageToSend : MessageToEngine = {
+  const messageToSend: MessageToEngine = {
     type: CREATE_ORDER,
     data: {
-        event:event.title,
-        price:price!,
-        quantity,
-        side,
-        //@ts-ignore
-        userId: req.userId,
-        outcome,
-    }
+      event: event.title,
+      price: price!,
+      quantity,
+      side,
+      //@ts-ignore
+      userId: req.userId,
+      outcome,
+    },
   };
 
   const response = await RedisManager.getInstance().sendAndAwait(messageToSend);
-  
-  console.log("response from orderbook",response);
-  if(!response){
+
+  console.log("response from orderbook", response);
+  if (!response) {
     res.status(400).json({ error: "Orderbook not responding", success: false });
     return;
   }
-
-
-
-
-
 
   res.status(200).json({ success: true, data: response });
 });
@@ -253,7 +270,8 @@ app.delete("/order/:orderId", authMiddleware, async (req, res) => {
     return;
   }
 
-  if (order.userId !== req.user.id) {
+  //@ts-ignore
+  if (order.userId !== req.userId) {
     res
       .status(403)
       .json({ error: "Not authorized to cancel this order", success: false });
@@ -283,7 +301,6 @@ app.delete("/order/:orderId", authMiddleware, async (req, res) => {
     .json({ success: true, data: { message: "Order cancelled successfully" } });
 });
 
-
 app.get("/depth/:eventId", async (req, res) => {
   const { eventId } = req.params;
 
@@ -296,22 +313,21 @@ app.get("/depth/:eventId", async (req, res) => {
     return;
   }
 
-
-  const messageToSend : MessageToEngine = {
+  const messageToSend: MessageToEngine = {
     type: GET_DEPTH,
     data: {
       event: event.title!,
     },
   };
 
-  console.log("message to send",messageToSend);
+  console.log("message to send", messageToSend);
   const response = await RedisManager.getInstance().sendAndAwait(messageToSend);
 
-  if(!response){
+  if (!response) {
     res.status(400).json({ error: "Orderbook not responding", success: false });
     return;
   }
-  
+
   res.status(200).json({ success: true, data: response });
 });
 app.listen(PORT, () => {
