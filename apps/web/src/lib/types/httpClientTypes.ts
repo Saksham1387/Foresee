@@ -1,10 +1,10 @@
 export interface Depth {
-    YES: {
-        asks: [string,string][];
-        bids: [string,string][];
-    };
-    NO: {
-        asks: [string,string][];
-        bids: [string,string][];
-    };
+  YES: {
+    asks: { price: number; quantity: number }[];
+    bids: { price: number; quantity: number }[];
+  };
+  NO: {
+    asks: { price: number; quantity: number }[];
+    bids: { price: number; quantity: number }[];
+  };
 }

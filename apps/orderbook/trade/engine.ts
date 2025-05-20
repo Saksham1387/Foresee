@@ -278,6 +278,7 @@ export class Engine {
       RedisManager.getInstance().publishMessage(`trades@${event}`, {
         stream: `trades@${event}`,
         data: {
+          e:"trade",
           price: fill.price.toString(),
           quantity: fill.quantity.toString(),
           timestamp: Date.now(),
@@ -383,6 +384,7 @@ export class Engine {
     RedisManager.getInstance().publishMessage(`depth@${event}`, {
       stream: `depth@${event}`,
       data: {
+        e:"depth",
         YES: {
           bids: yesUpdates.bids,
           asks: yesUpdates.asks,
@@ -488,7 +490,8 @@ export class Engine {
           throw new Error("User not found");
         }
         if (this.balances.get(userId)?.available! < price * quantity) {
-          throw new Error("Insufficient funds");
+          console.log("Insufficient funds");
+          return
         }
         this.balances.set(userId, {
           available: this.balances.get(userId)!.available - price * quantity,
