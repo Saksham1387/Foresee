@@ -42,9 +42,11 @@ export class SignalingManager {
           if (type === 'depth') {
             // TODO: Implement the logic here
             console.log("in hereeee")
-            const updatedBids = message.data.YES.bids;
-            const updatedAsks = message.data.YES.asks;
-            callback({ bids: updatedBids, asks: updatedAsks });
+            const updatedYesBids = message.data.YES.bids;
+            const updatedYesAsks = message.data.YES.asks;
+            const updatedNoBids = message.data.NO.bids;
+            const updatedNoAsks = message.data.NO.asks;
+            callback({ yesbids: updatedYesBids, yesasks: updatedYesAsks ,nobids: updatedNoBids, noasks: updatedNoAsks });
           }
         });
       }

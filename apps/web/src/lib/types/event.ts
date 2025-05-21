@@ -9,4 +9,6 @@ export type TEvent = {
     resolution? : string;
     volume: string;
     resolvedAt?: string;
+    thumbnail: string;
+    question: string;
 }

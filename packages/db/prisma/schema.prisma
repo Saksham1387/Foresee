@@ -33,8 +33,12 @@ model Event {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   title         String
+
   description   String
+  question      String?
   resolvedAt    DateTime?    
+  thumbnail     String?
+  
   expiresAt     DateTime     
   resolution    Resolution? 
   yesPrice      Decimal      @default(0.5) @db.Decimal(10, 2) 

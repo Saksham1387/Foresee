@@ -119,13 +119,15 @@ app.post("/event", authMiddleware, async (req, res) => {
     return;
   }
 
-  const { title, description, expiresAt } = data.data;
+  const { title, description, expiresAt,thumbnail ,question} = data.data;
 
   const event = await db.event.create({
     data: {
       title,
       description,
       expiresAt,
+      thumbnail,
+      question,
     },
   });
 

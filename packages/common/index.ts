@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const signupSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z.string(),
   username: z.string().min(3),
 });
 
@@ -11,11 +11,13 @@ export const createEventSchema = z.object({
   title: z.string(),
   description: z.string(),
   expiresAt: z.string(),
+  thumbnail: z.string().optional(),
+  question: z.string().optional(),
 });
 
 export const signinSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z.string(),
 });
 
 export const createOrderSchema = z.object({
