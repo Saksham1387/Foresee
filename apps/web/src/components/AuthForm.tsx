@@ -22,7 +22,7 @@ export const AuthForm = ({ type }: AuthFormProps) => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       if (type === "signin") {
         // Sign in logic
@@ -30,7 +30,7 @@ export const AuthForm = ({ type }: AuthFormProps) => {
           email,
           password,
         });
-        
+
         const resData = res.data;
         if (resData.success) {
           localStorage.setItem("token", resData.data);
@@ -46,7 +46,7 @@ export const AuthForm = ({ type }: AuthFormProps) => {
           email,
           password,
         });
-        
+
         if (res.data.success) {
           toast("Signed up successfully. You can now sign in");
           router.push("/auth/signin");
@@ -69,7 +69,7 @@ export const AuthForm = ({ type }: AuthFormProps) => {
         <div className="items-center justify-center flex">
           <Eye className="text-3xl" />
         </div>
-
+        <div className="items-center justify-center flex text-2xl font-bold">Foresee</div>
         <h2 className="mt-10 text-center text-2xl font-bold tracking-tight text-gray-900">
           {type === "signin"
             ? "Sign in to your account"

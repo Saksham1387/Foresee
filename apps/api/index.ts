@@ -130,6 +130,7 @@ app.post("/event", authMiddleware, async (req, res) => {
       question,
     },
   });
+  
 
   const messageToSend: MessageToEngine = {
     type: CREATE_EVENT,
@@ -301,6 +302,22 @@ app.delete("/order/:orderId", authMiddleware, async (req, res) => {
   res
     .status(200)
     .json({ success: true, data: { message: "Order cancelled successfully" } });
+});
+
+
+app.get("/me",authMiddleware, async (req, res) => {
+  //@ts-ignore
+  const userId = req.userId;
+  const user = await db.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    res.status(400).json({ error: "User not found", success: false });
+    return;
+  }
+
+  res.status(200).json({ success: true, data: user });
 });
 
 app.get("/depth/:eventId", async (req, res) => {

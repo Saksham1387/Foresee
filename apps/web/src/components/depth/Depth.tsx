@@ -4,7 +4,9 @@ import { TEvent } from "@/lib/types/event";
 import { useEffect, useState } from "react";
 import { SignalingManager } from "@/lib/SignalingManager";
 import { AskTable } from "./AsksTable";
-import { BidTable } from "./BidsTable";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Book, ChartCandlestick } from "lucide-react";
+import { Trade } from "../Trade";
 
 interface DepthProps {
   event: TEvent;
@@ -209,17 +211,39 @@ export const Depth = ({ event }: DepthProps) => {
   }, []);
 
   return (
-    <div className="flex flex-1 gap-5 bg-white border border-gray-200 p-6 rounded-2xl">
-      <div className="flex flex-col gap-2 flex-1">
-        <TableHeader outcome={"YES"} />
-        <AskTable asks={Yesasks} outcome="YES" />
-        {/* <BidTable bids={Yesbids} /> */}
-      </div>
-      <div className="flex flex-col gap-2 flex-1 ">
-        <TableHeader outcome={"NO"} />
-        <AskTable asks={Noasks} outcome="NO" />
-        {/* <BidTable bids={Nobids} /> */}
-      </div>
+    <div className="bg-white border border-gray-200 p-6 rounded-2xl">
+      <Tabs defaultValue="orderbook" className="mb-6">
+        <TabsList className="border-gray-200 w-1/10 justify-start p-1 bg-gray-200 rounded-lg">
+          <TabsTrigger
+            value="orderbook"
+            className="cursor-pointer text-black border-0 rounded-lg border-gray-200  data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:bg-gray-500 data-[state=active]:shadow-none px-1 py-2 text-sm font-thin"
+          >
+            <Book />
+          </TabsTrigger>
+          <TabsTrigger
+            value="trade"
+            className="rounded-lg cursor-pointer text-black border-0 border-gray-200 data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:bg-gray-500 data-[state=active]:shadow-none px-1 py-2 text-sm font-thin"
+          >
+            <ChartCandlestick />
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="orderbook" className="mt-6">
+          <div className="flex flex-1 gap-5 rounded-2xl">
+            <div className="flex flex-col gap-2 flex-1">
+              <TableHeader outcome={"YES"} />
+              <AskTable asks={Yesasks} outcome="YES" />
+            </div>
+            <div className="flex flex-col gap-2 flex-1 ">
+              <TableHeader outcome={"NO"} />
+              <AskTable asks={Noasks} outcome="NO" />
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="trade">
+          <Trade event={event} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

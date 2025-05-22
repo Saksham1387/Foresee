@@ -48,6 +48,9 @@ export class SignalingManager {
             const updatedNoAsks = message.data.NO.asks;
             callback({ yesbids: updatedYesBids, yesasks: updatedYesAsks ,nobids: updatedNoBids, noasks: updatedNoAsks });
           }
+          if(type === 'trade'){
+            callback(message.data);
+          }
         });
       }
     };

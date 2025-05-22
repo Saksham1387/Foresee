@@ -12,3 +12,10 @@ export type TEvent = {
     thumbnail: string;
     question: string;
 }
+
+export type TTrade = {
+    price: string;
+    quantity: string;
+    outcome: string;
+    timestamp: string;
+}
