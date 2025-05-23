@@ -1,4 +1,6 @@
 
+![Forsee Banner](https://fuchsia-legal-roundworm-794.mypinata.cloud/ipfs/bafybeicg2jye77lr5ok4eh7de33ujtxffllf2ynqdzc2ze423bxdbphkby)
+
 # Foresee — A Probo like Betting Platform
 
 **Foresee** is a full-stack prediction market and betting platform, inspired by Probo, built with a modular architecture optimized for scalability and performance.
