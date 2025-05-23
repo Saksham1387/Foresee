@@ -2,9 +2,9 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Button } from "./ui/button";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Eye } from "lucide-react";
 
-export const Hero = ({isVisible}: {isVisible: boolean}) => {
+export const Hero = ({ isVisible }: { isVisible: boolean }) => {
   return (
     <section className="relative py-20 md:py-32 overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-white flex items-center justify-center">
       <div className="absolute inset-0 opacity-20">
@@ -55,16 +55,25 @@ export const Hero = ({isVisible}: {isVisible: boolean}) => {
               }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              <Button size="lg" className="bg-primary hover:bg-primary/90">
-                Get Started <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white/20 hover:bg-white/10"
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
               >
-                View Odds
-              </Button>
+                <Button
+                  size="lg"
+                  className="bg-primary hover:bg-primary/90 group cursor-pointer border border-gray-500"
+                >
+                  Get Started
+                  <motion.div
+                    className="ml-2"
+                    whileHover={{ x: 4 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </motion.div>
+                </Button>
+              </motion.div>
             </motion.div>
           </div>
 
@@ -86,27 +95,12 @@ export const Hero = ({isVisible}: {isVisible: boolean}) => {
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
             <div className="absolute bottom-0 left-0 right-0 p-6">
               <div className="bg-black/40 backdrop-blur-sm rounded-lg p-4 border border-white/10">
-                <div className="text-sm font-medium mb-2">Featured Match</div>
-                <div className="flex justify-between items-center">
-                  <div className="text-center">
-                    <div className="font-bold">Arsenal</div>
-                    <div className="text-xs text-slate-300">2.10</div>
-                  </div>
-                  <div className="text-center px-2">
-                    <div className="text-xs text-slate-300">Draw</div>
-                    <div className="text-xs font-bold">3.25</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-bold">Liverpool</div>
-                    <div className="text-xs text-slate-300">3.40</div>
-                  </div>
+                <div className="text-lg font-bold mb-2 text-center">
+                  Foresee
                 </div>
-                <Button
-                  size="sm"
-                  className="w-full mt-3 bg-primary/90 hover:bg-primary"
-                >
-                  Place Bet
-                </Button>
+                <div className="items-center flex justify-center">
+                  <Eye className="h-7  w-7 text-white" />
+                </div>
               </div>
             </div>
           </motion.div>

@@ -1,84 +1,105 @@
-# Turborepo starter
 
-This Turborepo starter is maintained by the Turborepo core team.
+# Foresee — A Probo like Betting Platform
 
-## Using this example
+**Foresee** is a full-stack prediction market and betting platform, inspired by Probo, built with a modular architecture optimized for scalability and performance.
 
-Run the following command:
+This monorepo powers a decentralized-style betting system with a matching engine, real-time WebSocket updates, database abstraction layer, and inter-service messaging via Redis.
 
-```sh
-npx create-turbo@latest
-```
+---
 
-## What's inside?
-
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
+## 📦 Monorepo Structure
 
 ```
-cd my-turborepo
-pnpm build
+foresee/
+├── apps/
+│   ├── api/           # Core API service (GraphQL/REST)
+│   ├── orderbook/     # Matching engine service
+│   ├── db-service/    # Dedicated DB interaction service
+│   └── ws/            # WebSocket gateway for real-time updates
+├── packages/
+│   └── shared/        # Shared libraries/utilities/types
+├── .env               # Environment variables
+├── docker-compose.yml
+└── README.md
 ```
 
-### Develop
+---
 
-To develop all apps and packages, run the following command:
+## 🚀 Features
 
+* 📈 **Orderbook-based matching engine** — Inspired by financial exchanges
+* 🔄 **WebSocket support** — For real-time market updates and event streams
+* 🧩 **Service-oriented architecture** — Clean separation of concerns
+* 📡 **Redis-backed message queue** — Fast and scalable inter-service communication
+* 📚 **DB service abstraction** — Handles all persistence and retrieval operations
+
+---
+
+## 🛠️ Tech Stack
+
+* **Node.js** (TypeScript)
+* **Redis** — Pub/Sub and message queuing
+* **PostgreSQL / MongoDB** — Pluggable DB support
+* **WebSocket (WS)** — Real-time communication
+
+---
+
+## 🔧 Getting Started
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-org/foresee.git
+cd foresee
 ```
-cd my-turborepo
-pnpm dev
+
+### 2. Start All Services
+
+Or if using a monorepo task runner (e.g., `turbo`, `nx`, `lerna`):
+
+```bash
+bun install
+bun dev 
 ```
 
-### Remote Caching
+---
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+## 🧱 Services Overview
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+### `apps/api`
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+* Exposes endpoints for market creation, placing bets, querying market data.
+* Can be REST or GraphQL depending on implementation.
 
-```
-cd my-turborepo
-npx turbo login
-```
+### `apps/orderbook`
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+* Core of the matching engine
+* Matches YES/NO shares based on price and time priority
+* Consumes messages from Redis (e.g., new bet orders)
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+### `apps/db-service`
 
-```
-npx turbo link
-```
+* Responsible for DB reads/writes
+* Acts as a microservice for persistence
+* Can be accessed via RPC or message bus
 
-## Useful Links
+### `apps/ws`
 
-Learn more about the power of Turborepo:
+* WebSocket server for pushing market updates to clients
+* Subscribes to Redis channels to broadcast changes
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+---
+
+## 📬 Messaging System
+
+* All services communicate via **Redis Pub/Sub** channels.
+* Example channels:
+
+  * `orders:new`
+  * `market:depth`
+  * `matched:trades`
+
+This decoupled architecture allows each component to scale independently.
+
+---
+

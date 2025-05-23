@@ -10,7 +10,6 @@ import {
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "./config";
 import { authMiddleware } from "./middleware";
-import { matchOrder } from "./matchEngine";
 import { RedisManager } from "./redisManager";
 import {
   CREATE_EVENT,

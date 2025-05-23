@@ -6,7 +6,7 @@ export const BuySellPanel = () => {
     <div className="lg:col-span-1">
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <div className="grid grid-cols-2 gap-4 mb-6">
-          <Button className="bg-blue-500 hover:bg-blue-600 text-white">
+          <Button className="bg-black hover:bg-blue-600 text-white">
             Yes ₹6.1
           </Button>
           <Button variant="outline" className="border-gray-300 text-gray-700">
@@ -17,7 +17,7 @@ export const BuySellPanel = () => {
         <div className="mb-6">
           <div className="text-sm font-medium mb-2">Set price</div>
           <div className="h-1 bg-gray-200 rounded-full mb-2">
-            <div className="h-1 bg-blue-500 rounded-full w-1/2"></div>
+            <div className="h-1 bg-black rounded-full w-1/2"></div>
           </div>
         </div>
 
@@ -105,7 +105,7 @@ export const BuySellPanel = () => {
             </button>
           </div>
 
-          <Button className="w-full bg-blue-500 hover:bg-blue-600">
+          <Button className="w-full text-white bg-black hover:bg-black/90">
             Place order
           </Button>
         </div>
