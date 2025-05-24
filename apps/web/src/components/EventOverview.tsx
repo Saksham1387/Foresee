@@ -10,8 +10,9 @@ export const EventOverview = ({ event }: EventOverviewProps) => {
   return (
     <div className="flex items-start gap-4 mb-6">
       <div className="w-20 h-20 rounded-xl overflow-hiddenflex-shrink-0 ">
+        {/* TODO: Replace with the event thumbnail */}
         <Image
-          src={event.thumbnail}
+          src={"/hero02.jpeg"}
           alt="thumbnail"
           width={80}
           height={80}

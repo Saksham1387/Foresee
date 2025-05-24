@@ -1,5 +1,4 @@
 "use client";
-import { Button } from "./ui/button";
 import { Eye, User, Wallet } from "lucide-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -44,30 +43,46 @@ export const InternalHeader = () => {
         </Link>
 
         <nav className="hidden md:flex items-center space-x-6">
-          <Button variant="ghost" className="cursor-pointer">
-            Home
-          </Button>
-          <Button variant="ghost" className="cursor-pointer">
-            Trade
-          </Button>
+          <Link href="/" className="cursor-pointer text-md relative group">
+            <span className="relative">
+              Home
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full"></span>
+            </span>
+          </Link>
+          <Link href="/event" className="cursor-pointer text-md relative group">
+            <span className="relative">
+              Trade
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full"></span>
+            </span>
+          </Link>
         </nav>
 
         {user && (
           <div className="flex items-center space-x-6">
-            <div className="flex flex-row items-center gap-2 bg-gray-200 p-2 rounded-xl">
-              <Wallet className="w-5 h-5"/>
+            <div className="flex flex-row items-center gap-2  p-2 rounded-xl">
+              <Wallet className="w-5 h-5" />
               <span className="text-sm font-semibold">{user.balance}</span>
             </div>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <User />
+              <DropdownMenuTrigger asChild className="cursor-pointer">
+                <div className="relative flex items-center gap-2 bg-gray-200 p-2 rounded-full">
+                  <User />
+                </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-white border-none">
                 <DropdownMenuGroup>
                   <DropdownMenuItem> {user.username}</DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel>Log out</DropdownMenuLabel>
+                <DropdownMenuLabel
+                  onClick={() => {
+                    localStorage.setItem("token", "");
+                    setUser(null);
+                  }}
+                  className="cursor-pointer hover:bg-gray-200"
+                >
+                  Log out
+                </DropdownMenuLabel>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

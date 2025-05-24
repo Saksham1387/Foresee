@@ -109,6 +109,18 @@ app.get("/event/:eventId", async (req, res) => {
   return;
 });
 
+app.get("/events", authMiddleware, async (req, res) => {
+  const events = await db.event.findMany({
+    where: {
+      isActive: true,
+    },
+    orderBy: {
+      expiresAt: "asc",
+    },
+  });
+
+  res.status(200).json({ success: true, data: events });
+});
 app.post("/event", authMiddleware, async (req, res) => {
   console.log(req.body);
   const data = createEventSchema.safeParse(req.body);
@@ -118,7 +130,7 @@ app.post("/event", authMiddleware, async (req, res) => {
     return;
   }
 
-  const { title, description, expiresAt,thumbnail ,question} = data.data;
+  const { title, description, expiresAt, thumbnail, question } = data.data;
 
   const event = await db.event.create({
     data: {
@@ -129,7 +141,6 @@ app.post("/event", authMiddleware, async (req, res) => {
       question,
     },
   });
-  
 
   const messageToSend: MessageToEngine = {
     type: CREATE_EVENT,
@@ -303,8 +314,7 @@ app.delete("/order/:orderId", authMiddleware, async (req, res) => {
     .json({ success: true, data: { message: "Order cancelled successfully" } });
 });
 
-
-app.get("/me",authMiddleware, async (req, res) => {
+app.get("/me", authMiddleware, async (req, res) => {
   //@ts-ignore
   const userId = req.userId;
   const user = await db.user.findUnique({

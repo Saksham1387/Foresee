@@ -1,24 +1,135 @@
-import { ChevronDown, Minus, Plus } from "lucide-react";
+"use client";
+import { useState } from "react";
+import { Minus, Plus } from "lucide-react";
 import { Button } from "./ui/button";
+import { TEvent } from "@/lib/types/event";
+import { API_URL } from "@/lib/config";
+import axios from "axios";
+import { toast } from "sonner";
 
-export const BuySellPanel = () => {
+interface BuySellPanelProps {
+  event: TEvent;
+}
+
+export const BuySellPanel = ({ event }: BuySellPanelProps) => {
+  const [selectedOption, setSelectedOption] = useState<"yes" | "no">("yes");
+  const [yesPrice, setYesPrice] = useState<number>(Number(event.yesPrice));
+  const [yesQuantity, setYesQuantity] = useState(1);
+  const [noPrice, setNoPrice] = useState<number>(Number(event.noPrice));
+  const [noQuantity, setNoQuantity] = useState(1);
+
+  const price = selectedOption === "yes" ? yesPrice : noPrice;
+  const quantity = selectedOption === "yes" ? yesQuantity : noQuantity;
+
+  const handlePriceChange = (delta: number) => {
+    if (selectedOption === "yes") {
+      setYesPrice(Math.max(0.1, yesPrice + delta));
+    } else {
+      setNoPrice(Math.max(0.1, noPrice + delta));
+    }
+  };
+
+  const handleQuantityChange = (delta: number) => {
+    if (selectedOption === "yes") {
+      setYesQuantity(Math.max(1, yesQuantity + delta));
+    } else {
+      setNoQuantity(Math.max(1, noQuantity + delta));
+    }
+  };
+
+  const totalInvestment = price * quantity;
+  const potentialReturn = quantity * 10; // Assuming 10 is max return per unit
+
+  const handlePlaceOrder = async () => {
+    let res;
+    if (selectedOption === "yes") {
+      try {
+        res = await axios.post(
+          `${API_URL}/order`,
+          {
+            eventId: event.id,
+            orderType: "LIMIT",
+            outcome: selectedOption.toUpperCase(),
+            side: "BUY",
+            quantity: yesQuantity,
+            price: yesPrice,
+          },
+          {
+            headers: {
+              Authorization: `${localStorage.getItem("token")}`,
+            },
+          }
+        );
+      } catch (err) {
+        console.log(err);
+        toast.error("Failed to place order");
+        return;
+      }
+      if (res.data.success) {
+        toast.success("Order placed successfully");
+        return;
+      } else {
+        toast.error("Failed to place order");
+        return;
+      }
+    } else {
+      try {
+        res = await axios.post(
+          `${API_URL}/order`,
+          {
+            eventId: event.id,
+            orderType: "LIMIT",
+            outcome: selectedOption.toUpperCase(),
+            side: "BUY",
+            quantity: noQuantity,
+            price: noPrice,
+          },
+          {
+            headers: {
+              Authorization: `${localStorage.getItem("token")}`,
+            },
+          }
+        );
+      } catch (err) {
+        console.log(err);
+        toast("Failed to place order");
+        return;
+      }
+      if (res.data.success) {
+        toast.success("Order placed successfully");
+        return;
+      } else {
+        toast("Failed to place order");
+        return;
+      }
+    }
+  };
+
   return (
     <div className="lg:col-span-1">
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <div className="grid grid-cols-2 gap-4 mb-6">
-          <Button className="bg-black hover:bg-blue-600 text-white">
-            Yes ₹6.1
+          <Button
+            className={`${
+              selectedOption === "yes"
+                ? "bg-black  text-white"
+                : "bg-gray-200 hover:bg-gray-200 text-gray-700"
+            }`}
+            onClick={() => setSelectedOption("yes")}
+          >
+            Yes ₹{yesPrice}
           </Button>
-          <Button variant="outline" className="border-gray-300 text-gray-700">
-            No ₹3.9
+          <Button
+            variant={selectedOption === "no" ? "default" : "outline"}
+            className={`${
+              selectedOption === "no"
+                ? "bg-black  text-white "
+                : "border-none bg-gray-200 text-gray-700 hover:bg-gray-200"
+            }`}
+            onClick={() => setSelectedOption("no")}
+          >
+            No ₹{noPrice}
           </Button>
-        </div>
-
-        <div className="mb-6">
-          <div className="text-sm font-medium mb-2">Set price</div>
-          <div className="h-1 bg-gray-200 rounded-full mb-2">
-            <div className="h-1 bg-black rounded-full w-1/2"></div>
-          </div>
         </div>
 
         <div className="space-y-6">
@@ -30,14 +141,16 @@ export const BuySellPanel = () => {
                   variant="outline"
                   size="icon"
                   className="h-8 w-8 rounded-full"
+                  onClick={() => handlePriceChange(-0.1)}
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
-                <span className="font-bold text-lg">₹6.2</span>
+                <span className="font-bold text-lg">₹{price}</span>
                 <Button
                   variant="outline"
                   size="icon"
                   className="h-8 w-8 rounded-full"
+                  onClick={() => handlePriceChange(0.1)}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -72,14 +185,16 @@ export const BuySellPanel = () => {
                   variant="outline"
                   size="icon"
                   className="h-8 w-8 rounded-full"
+                  onClick={() => handleQuantityChange(-1)}
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
-                <span className="font-bold text-lg">1</span>
+                <span className="font-bold text-lg">{quantity}</span>
                 <Button
                   variant="outline"
                   size="icon"
                   className="h-8 w-8 rounded-full"
+                  onClick={() => handleQuantityChange(1)}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -89,23 +204,23 @@ export const BuySellPanel = () => {
 
           <div className="grid grid-cols-2 gap-4 py-4">
             <div className="text-center">
-              <div className="text-lg font-bold text-gray-900">₹6.2</div>
+              <div className="text-lg font-bold text-gray-900">
+                ₹{totalInvestment.toFixed(1)}
+              </div>
               <div className="text-sm text-gray-500">You put</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold text-green-600">₹10.0</div>
+              <div className="text-lg font-bold text-green-600">
+                ₹{potentialReturn.toFixed(1)}
+              </div>
               <div className="text-sm text-gray-500">You get</div>
             </div>
           </div>
 
-          <div>
-            <button className="flex items-center justify-between w-full text-gray-700">
-              <span className="font-medium">Advanced Options</span>
-              <ChevronDown className="h-5 w-5" />
-            </button>
-          </div>
-
-          <Button className="w-full text-white bg-black hover:bg-black/90">
+          <Button
+            className="w-full text-white bg-black hover:bg-black/90"
+            onClick={handlePlaceOrder}
+          >
             Place order
           </Button>
         </div>

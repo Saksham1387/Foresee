@@ -13,6 +13,7 @@ export default async function EventPage({
   try {
     const response = await axios.get(`${API_URL}/event/${eventId}`);
     const event = response.data.data;
+    console.log(event);
     return (
       <div className="bg-[#f5f5f5] h-screen">
         <InternalHeader />
@@ -20,7 +21,7 @@ export default async function EventPage({
           <InfoPanel event={event} />
 
           <div className="w-1/3">
-            <BuySellPanel />
+            <BuySellPanel  event={event}/>
           </div>
         </div>
       </div>
