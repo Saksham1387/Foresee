@@ -109,7 +109,7 @@ app.get("/event/:eventId", async (req, res) => {
   return;
 });
 
-app.get("/events", authMiddleware, async (req, res) => {
+app.get("/events", async (req, res) => {
   const events = await db.event.findMany({
     where: {
       isActive: true,
