@@ -79,7 +79,7 @@ export const InternalHeader = () => {
                     localStorage.setItem("token", "");
                     setUser(null);
                   }}
-                  className="cursor-pointer hover:bg-gray-200"
+                  className="cursor-pointer hover:bg-gray-200 "
                 >
                   Log out
                 </DropdownMenuLabel>
@@ -88,7 +88,7 @@ export const InternalHeader = () => {
           </div>
         )}
         {!user && (
-          <nav className="hidden md:flex items-center space-x-6">
+          <nav className="hidden md:flex items-center space-x-6 bg-black text-white p-3 rounded-xl hover:bg-black/70 text-sm">
             <Link href={"/auth/signin"}>Log In</Link>
           </nav>
         )}

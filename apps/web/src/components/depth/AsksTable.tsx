@@ -78,8 +78,8 @@ function Ask({
         }}
       ></div>
       <div className="flex justify-between text-sm w-full text-black mb-2 border-gray-300  border-t-1">
-        <div className="items-center justify-center flex">{price}</div>
-        <div>{quantity}</div>
+        <div className="items-center justify-center flex px-3 font-bold">{price}</div>
+        <div className="items-center justify-center flex px-3 font-bold">{quantity}</div>
       </div>
     </div>
   );

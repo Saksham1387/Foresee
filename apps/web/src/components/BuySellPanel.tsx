@@ -17,7 +17,8 @@ export const BuySellPanel = ({ event }: BuySellPanelProps) => {
   const [yesQuantity, setYesQuantity] = useState(1);
   const [noPrice, setNoPrice] = useState<number>(Number(event.noPrice));
   const [noQuantity, setNoQuantity] = useState(1);
-
+  const isLoggedIn = localStorage.getItem("token") !== "";
+  console.log("isLoggedIn", isLoggedIn);
   const price = selectedOption === "yes" ? yesPrice : noPrice;
   const quantity = selectedOption === "yes" ? yesQuantity : noQuantity;
 
@@ -41,6 +42,10 @@ export const BuySellPanel = ({ event }: BuySellPanelProps) => {
   const potentialReturn = quantity * 10; // Assuming 10 is max return per unit
 
   const handlePlaceOrder = async () => {
+    if (!isLoggedIn) {
+      toast.error("Please sign in to place order");
+      return;
+    }
     let res;
     if (selectedOption === "yes") {
       try {
@@ -218,10 +223,11 @@ export const BuySellPanel = ({ event }: BuySellPanelProps) => {
           </div>
 
           <Button
+            disabled={!isLoggedIn}
             className="w-full text-white bg-black hover:bg-black/90"
             onClick={handlePlaceOrder}
           >
-            Place order
+            {isLoggedIn ? "Place order" : "Sign in to place order"}
           </Button>
         </div>
       </div>

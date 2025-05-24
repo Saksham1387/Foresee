@@ -6,7 +6,14 @@ import axios from "axios";
 import { TEvent } from "@/lib/types/event";
 import { EventCard } from "@/components/EventCard";
 
-const categories = ["All events","Crypto","Sports","Politics","Business","Tech"];
+const categories = [
+  "All events",
+  "Crypto",
+  "Sports",
+  "Politics",
+  "Business",
+  "Tech",
+];
 
 export default function Event() {
   const [events, setEvents] = useState<TEvent[]>([]);
@@ -14,16 +21,11 @@ export default function Event() {
 
   useEffect(() => {
     const fetchEvents = async () => {
-      const res = await axios.get(`${API_URL}/events`, {
-        headers: {
-          Authorization: `${localStorage.getItem("token")}`,
-        },
-      });
+      const res = await axios.get(`${API_URL}/events`);
       setEvents(res.data.data);
     };
-    if (localStorage.getItem("token")) {
-      fetchEvents();
-    }
+
+    fetchEvents();
   }, []);
   return (
     <div className="bg-[#f5f5f5] h-screen">
